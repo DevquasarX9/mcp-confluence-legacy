@@ -1,0 +1,10 @@
+[mcp_servers.confluence]
+command = "confluence-legacy-mcp-server"
+
+[mcp_servers.confluence.env]
+CONFLUENCE_BASE_URL = "https://confluence.example.com/confluence"
+CONFLUENCE_AUTH_MODE = "basic"
+CONFLUENCE_USERNAME = "your.username"
+CONFLUENCE_PASSWORD = "your-password"
+CONFLUENCE_READ_ONLY = "true"
+CONFLUENCE_ENABLE_WRITE_TOOLS = "false"
