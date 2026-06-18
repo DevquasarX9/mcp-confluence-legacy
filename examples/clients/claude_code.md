@@ -21,13 +21,13 @@ claude mcp add confluence -- confluence-legacy-mcp-server
 Set the required environment variables before launching Claude Code:
 
 ```bash
-export CONFLUENCE_BASE_URL="https://confluence.example.com/confluence"
-export CONFLUENCE_AUTH_MODE="basic"
-export CONFLUENCE_USERNAME="your.username"
-export CONFLUENCE_PASSWORD="your-password"
+export CONFLUENCE_BASE_URL="http://127.0.0.1:4878"
+export CONFLUENCE_AUTH_MODE="none"
 export CONFLUENCE_READ_ONLY="true"
 export CONFLUENCE_ENABLE_WRITE_TOOLS="false"
 ```
+
+Run `confluence-local-auth-proxy` separately with the real upstream Confluence credentials. Keep those credentials out of Claude Code and the MCP server environment.
 
 Optional space policy examples:
 

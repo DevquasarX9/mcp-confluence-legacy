@@ -21,7 +21,7 @@ The server will:
 - Keep read-only mode enabled by default.
 - Require explicit opt-in for write tools.
 - Validate every tool input with Zod.
-- Keep credentials in environment variables or external MCP client configuration.
+- Support a local auth proxy so upstream Confluence credentials can stay out of the MCP server and external MCP client configuration.
 - Avoid Confluence P2/OSGi plugin code in the primary architecture.
 
 ## Rationale
@@ -45,6 +45,7 @@ Positive:
 - Clear operational boundary and standard npm release process.
 - Easier CI, tests, and MCP client integration.
 - Can be deployed per team or per service account.
+- Can isolate upstream Basic Auth credentials in `confluence-local-auth-proxy` while the MCP server uses `CONFLUENCE_AUTH_MODE=none`.
 
 Tradeoffs:
 
@@ -52,6 +53,7 @@ Tradeoffs:
 - Uses Confluence storage XHTML for writes.
 - Performance depends on REST pagination and expansions.
 - Some authentication modes depend on the organization's proxy/SSO setup.
+- Local proxy deployments require an additional local process.
 
 ## Optional plugin helper policy
 

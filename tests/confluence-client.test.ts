@@ -61,6 +61,26 @@ describe("ConfluenceClient", () => {
     );
   });
 
+  it("sends no upstream auth headers in local proxy mode", async () => {
+    const fetchMock = vi.fn<FetchImplementation>().mockResolvedValue(
+      jsonResponse({
+        results: [],
+      }),
+    );
+    const { username: _username, password: _password, ...proxyConfig } = makeConfig({
+      baseUrl: "http://127.0.0.1:4878",
+      authMode: "none",
+    });
+    const client = new ConfluenceClient(proxyConfig, new Logger("error"), fetchMock);
+
+    await client.get<Record<string, unknown>>("/rest/api/space");
+    await client.close();
+
+    const [, init] = fetchMock.mock.calls[0] ?? [];
+    expect(init?.headers?.Authorization).toBeUndefined();
+    expect(init?.headers?.Cookie).toBeUndefined();
+  });
+
   it("increments page version when versionNumber is omitted", async () => {
     const fetchMock = vi
       .fn<FetchImplementation>()

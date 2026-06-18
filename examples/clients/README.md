@@ -20,17 +20,29 @@ npm test
 npm run build
 ```
 
-Then run the server with read-only settings first:
+Run the local auth proxy in a separate shell. This is the only process that should receive real upstream Confluence credentials:
 
 ```bash
-CONFLUENCE_BASE_URL="https://confluence.example.com/confluence" \
-CONFLUENCE_AUTH_MODE="basic" \
-CONFLUENCE_USERNAME="your.username" \
-CONFLUENCE_PASSWORD="your-password" \
+CONFLUENCE_UPSTREAM_BASE_URL="https://confluence.example.com/confluence" \
+CONFLUENCE_UPSTREAM_AUTH_MODE="basic" \
+CONFLUENCE_UPSTREAM_USERNAME="your.username" \
+CONFLUENCE_UPSTREAM_PASSWORD="your-password" \
+CONFLUENCE_PROXY_READ_ONLY="true" \
+CONFLUENCE_PROXY_ENABLE_WRITE="false" \
+confluence-local-auth-proxy
+```
+
+Then run the MCP server with read-only settings first:
+
+```bash
+CONFLUENCE_BASE_URL="http://127.0.0.1:4878" \
+CONFLUENCE_AUTH_MODE="none" \
 CONFLUENCE_READ_ONLY="true" \
 CONFLUENCE_ENABLE_WRITE_TOOLS="false" \
 confluence-legacy-mcp-server
 ```
+
+If the proxy is configured with `CONFLUENCE_LOCAL_PROXY_TOKEN`, set the MCP server to `CONFLUENCE_AUTH_MODE=header` and send `X-Confluence-Proxy-Token` instead of `none`.
 
 Optional space policy for any client:
 

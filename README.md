@@ -11,6 +11,7 @@ External MCP server for Atlassian Confluence Server 6.0.x, built as a Node.js/Ty
 
 - npm package: [confluence-legacy-mcp-cli](https://www.npmjs.com/package/confluence-legacy-mcp-cli)
 - CLI: `confluence-legacy-mcp-server`
+- Local auth proxy CLI: `confluence-local-auth-proxy`
 - Repository: [DevquasarX9/mcp-confluence-legacy](https://github.com/DevquasarX9/mcp-confluence-legacy)
 - Target: Atlassian Confluence Server 6.0.5
 - Works with: Claude Code, Claude Desktop, Codex, Cursor, and other MCP clients
@@ -68,7 +69,11 @@ MCP client
   v
 confluence-legacy-mcp-server
   |
-  | HTTPS REST API
+  | HTTP REST API with no upstream credentials
+  v
+confluence-local-auth-proxy (127.0.0.1:4878)
+  |
+  | HTTPS REST API with injected upstream auth
   v
 Atlassian Confluence Server 6.0.5
 ```
@@ -136,15 +141,13 @@ npm test
 
 ## Configuration
 
-Copy `.env.example` to `.env` for local development, or set the same variables in your MCP client configuration.
+The recommended setup keeps upstream Confluence credentials out of the MCP server and MCP client configuration. Run the local auth proxy as the only process that knows the real Confluence username/password, then point the MCP server at that proxy.
 
-Minimal read-only config:
+MCP server config for local proxy mode:
 
 ```env
-CONFLUENCE_BASE_URL=https://confluence.example.com/confluence
-CONFLUENCE_AUTH_MODE=basic
-CONFLUENCE_USERNAME=your.username
-CONFLUENCE_PASSWORD=your-password
+CONFLUENCE_BASE_URL=http://127.0.0.1:4878
+CONFLUENCE_AUTH_MODE=none
 CONFLUENCE_READ_ONLY=true
 CONFLUENCE_ENABLE_WRITE_TOOLS=false
 ```
@@ -169,10 +172,18 @@ CONFLUENCE_DENIED_SPACES=SECRET
 
 Supported modes:
 
-- `basic`: username plus password. Recommended for stock Confluence Server 6.0.5 over HTTPS.
+- `none`: send no auth headers. Recommended when the MCP server talks to `confluence-local-auth-proxy`.
+- `basic`: username plus password. Use only when you explicitly accept credentials living in the MCP server process.
 - `bearer`: bearer token for reverse-proxy, SSO, or newer/custom deployments. Stock 6.0.5 does not provide native PATs.
 - `header`: static trusted proxy header.
 - `cookie`: pre-issued cookie value supplied as `CONFLUENCE_COOKIE`.
+
+No-auth local proxy mode:
+
+```env
+CONFLUENCE_BASE_URL=http://127.0.0.1:4878
+CONFLUENCE_AUTH_MODE=none
+```
 
 Basic auth:
 
@@ -206,6 +217,53 @@ CONFLUENCE_COOKIE=JSESSIONID=...
 
 This server intentionally does not support `os_username` and `os_password` URL query credentials.
 
+## Local Auth Proxy
+
+`confluence-local-auth-proxy` is a local-only HTTP auth bridge modeled after the Jira local auth proxy pattern. The MCP server calls the proxy; the proxy injects upstream Confluence authentication and forwards only allowlisted REST routes.
+
+Proxy environment:
+
+```env
+CONFLUENCE_UPSTREAM_BASE_URL=https://confluence.example.com/confluence
+CONFLUENCE_UPSTREAM_AUTH_MODE=basic
+CONFLUENCE_UPSTREAM_USERNAME=confluence-service-user
+CONFLUENCE_UPSTREAM_PASSWORD=super-secret-password
+
+CONFLUENCE_PROXY_HOST=127.0.0.1
+CONFLUENCE_PROXY_PORT=4878
+CONFLUENCE_PROXY_READ_ONLY=true
+CONFLUENCE_PROXY_ENABLE_WRITE=false
+CONFLUENCE_PROXY_STRICT_SSL=true
+```
+
+Start the proxy:
+
+```bash
+confluence-local-auth-proxy
+```
+
+Optional local proxy token:
+
+```env
+CONFLUENCE_LOCAL_PROXY_TOKEN=replace-with-a-random-local-token
+```
+
+If a proxy token is configured, the MCP server must send it as a header:
+
+```env
+CONFLUENCE_BASE_URL=http://127.0.0.1:4878
+CONFLUENCE_AUTH_MODE=header
+CONFLUENCE_AUTH_HEADER_NAME=X-Confluence-Proxy-Token
+CONFLUENCE_AUTH_HEADER_VALUE=replace-with-the-same-local-token
+```
+
+Proxy route policy:
+
+- Read routes: content search, content reads, child pages/comments/attachments, labels, and spaces.
+- Write routes, disabled by default: create content, update content, and add labels.
+- Attachment upload is additionally gated by `CONFLUENCE_PROXY_ENABLE_ATTACHMENTS=true`.
+- Destructive delete routes are not forwarded.
+
 ## MCP Client Setup
 
 Example client configs live in [`examples/clients/`](examples/clients/):
@@ -224,10 +282,8 @@ Generic MCP server config:
     "confluence": {
       "command": "confluence-legacy-mcp-server",
       "env": {
-        "CONFLUENCE_BASE_URL": "https://confluence.example.com/confluence",
-        "CONFLUENCE_AUTH_MODE": "basic",
-        "CONFLUENCE_USERNAME": "alice",
-        "CONFLUENCE_PASSWORD": "secret",
+        "CONFLUENCE_BASE_URL": "http://127.0.0.1:4878",
+        "CONFLUENCE_AUTH_MODE": "none",
         "CONFLUENCE_READ_ONLY": "true",
         "CONFLUENCE_ENABLE_WRITE_TOOLS": "false"
       }
@@ -408,7 +464,7 @@ Full schemas are documented in [docs/tool-schemas.md](docs/tool-schemas.md).
 
 ## Security Notes
 
-- Credentials must come from environment variables or MCP client configuration.
+- Prefer `confluence-local-auth-proxy` so upstream Confluence credentials stay out of MCP client/server configuration.
 - Credentials are never hardcoded.
 - Logs redact token, password, cookie, secret, and authorization-like fields.
 - Read-only mode is enabled by default.

@@ -3,10 +3,8 @@
     "confluence": {
       "command": "confluence-legacy-mcp-server",
       "env": {
-        "CONFLUENCE_BASE_URL": "https://confluence.example.com/confluence",
-        "CONFLUENCE_AUTH_MODE": "basic",
-        "CONFLUENCE_USERNAME": "your.username",
-        "CONFLUENCE_PASSWORD": "your-password",
+        "CONFLUENCE_BASE_URL": "http://127.0.0.1:4878",
+        "CONFLUENCE_AUTH_MODE": "none",
         "CONFLUENCE_READ_ONLY": "true",
         "CONFLUENCE_ENABLE_WRITE_TOOLS": "false"
       }
