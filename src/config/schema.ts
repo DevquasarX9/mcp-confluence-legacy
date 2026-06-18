@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { LogLevel } from "../utils/logger.js";
 
-const authModeSchema = z.enum(["basic", "bearer", "cookie", "header"]);
+const authModeSchema = z.enum(["basic", "bearer", "cookie", "header", "none"]);
 const logLevelSchema = z.enum(["debug", "info", "warn", "error"]);
 
 export const rawConfigSchema = z
@@ -73,6 +73,8 @@ export const rawConfigSchema = z
             message: "CONFLUENCE_AUTH_HEADER_NAME and CONFLUENCE_AUTH_HEADER_VALUE are required for header auth.",
           });
         }
+        break;
+      case "none":
         break;
     }
   });

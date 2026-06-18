@@ -40,5 +40,7 @@ export function buildAuthHeaders(config: AppConfig): HeadersInit {
       return {
         [config.authHeaderName]: config.authHeaderValue,
       };
+    case "none":
+      return {};
   }
 }

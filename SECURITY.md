@@ -8,7 +8,7 @@ When reporting, include:
 
 - The affected package version.
 - The Confluence deployment type and version, especially whether it is Confluence Server 6.0.5, another 6.0.x version, or Data Center.
-- The authentication mode in use: `basic`, `bearer`, `cookie`, or `header`.
+- The authentication mode in use: `none`, `basic`, `bearer`, `cookie`, or `header`.
 - Reproduction steps with sanitized data only.
 - Whether write tools were enabled.
 
@@ -18,6 +18,7 @@ Rotate any exposed Confluence, proxy, or npm tokens before reporting.
 
 - Never commit `.env` files or MCP client configs that contain live credentials.
 - Never hardcode Confluence credentials, cookies, bearer tokens, proxy headers, or npm tokens.
+- Prefer `confluence-local-auth-proxy` with `CONFLUENCE_AUTH_MODE=none` in the MCP server so upstream Confluence credentials stay out of agent-visible MCP configuration.
 - Keep `CONFLUENCE_READ_ONLY=true` and `CONFLUENCE_ENABLE_WRITE_TOOLS=false` unless write access is explicitly required.
 - Treat Confluence page bodies, comments, labels, filenames, and attachment content as untrusted input.
 - Do not log request headers, cookies, tokens, passwords, or raw credential-bearing configuration.
@@ -26,7 +27,7 @@ Rotate any exposed Confluence, proxy, or npm tokens before reporting.
 
 ## Permission Model
 
-This MCP server does not bypass Confluence permissions. Every REST call runs as the configured Confluence identity. Confluence remains the source of truth for page, space, attachment, comment, and label permissions.
+This MCP server does not bypass Confluence permissions. Every REST call runs as the configured Confluence identity, whether that identity is configured directly in the MCP server or injected by `confluence-local-auth-proxy`. Confluence remains the source of truth for page, space, attachment, comment, and label permissions.
 
 Server-side space allow/deny lists are an additional policy layer, not a replacement for Confluence permissions.
 

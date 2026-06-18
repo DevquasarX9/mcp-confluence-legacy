@@ -23,7 +23,8 @@ Confluence REST requests use the same authentication and permission checks as br
 
 Supported by this MCP server:
 
-- `basic`: username plus password. This is the safest default for stock Confluence Server 6.0.5.
+- `none`: no outbound auth header. This is intended for local auth proxy deployments where upstream credentials are injected outside the MCP server process.
+- `basic`: username plus password. Use only when direct credentials in the MCP server process are acceptable.
 - `bearer`: bearer token for reverse-proxy, SSO, or custom/plugin-backed environments. Stock Confluence Server 6.0.5 does not provide native PATs.
 - `header`: custom static auth header for trusted internal reverse-proxy deployments.
 - `cookie`: pre-issued cookie value from configuration. The server does not scrape login pages or implement browser login.

@@ -38,4 +38,14 @@ describe("loadConfig", () => {
       }),
     ).toThrow();
   });
+
+  it("allows no-auth mode for local proxy deployments", () => {
+    const config = loadConfig({
+      CONFLUENCE_BASE_URL: "http://127.0.0.1:4878",
+      CONFLUENCE_AUTH_MODE: "none",
+    });
+
+    expect(config.baseUrl).toBe("http://127.0.0.1:4878");
+    expect(config.authMode).toBe("none");
+  });
 });
